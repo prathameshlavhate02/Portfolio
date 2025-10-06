@@ -1,3 +1,66 @@
+(function () {
+  "use strict";
+
+  // Select the form with the class .php-email-form
+  let form = document.querySelector('.php-email-form');
+
+  form.addEventListener('submit', function (event) {
+    event.preventDefault(); // Prevent the default browser form submission
+
+    // Get the display elements
+    let loading = form.querySelector('.loading');
+    let errorMessage = form.querySelector('.error-message');
+    let sentMessage = form.querySelector('.sent-message');
+
+    // Show loading message, hide others
+    loading.style.display = 'block';
+    errorMessage.style.display = 'none';
+    sentMessage.style.display = 'none';
+
+    // Use the Fetch API to send the form data
+    fetch(form.action, {
+      method: form.method,
+      body: new FormData(form),
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    })
+    .then(response => {
+      // Check if the server response is OK (status 200-299)
+      if (response.ok) {
+        return response.text();
+      } else {
+        // If not OK, throw an error to be caught by the .catch block
+        throw new Error(`Server error: ${response.status} ${response.statusText}`);
+      }
+    })
+    .then(data => {
+      // Hide loading message
+      loading.style.display = 'none';
+      
+      // Check the text response from the PHP script
+      if (data.trim() === 'Your message has been sent. Thank you!') {
+        sentMessage.innerHTML = data.trim();
+        sentMessage.style.display = 'block';
+        form.reset(); // Clear the form fields
+      } else {
+        // If the PHP script returned an error message, display it
+        errorMessage.innerHTML = data.trim() || 'Form submission failed!';
+        errorMessage.style.display = 'block';
+      }
+    })
+    .catch(error => {
+      // This block catches network errors or errors thrown from the .then block
+      loading.style.display = 'none';
+      errorMessage.innerHTML = 'Oops! A network error occurred. Please try again later.';
+      errorMessage.style.display = 'block';
+      console.error('Form submission error:', error);
+    });
+  });
+})();
+
+
+
 /**
 * Template Name: MyResume
 * Template URL: https://bootstrapmade.com/free-html-bootstrap-template-my-resume/
@@ -227,3 +290,5 @@
   document.addEventListener('scroll', navmenuScrollspy);
 
 })();
+
+
